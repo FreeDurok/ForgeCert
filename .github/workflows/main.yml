@@ -1,0 +1,51 @@
+name: .NET Desktop Build
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: windows-2019
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup NuGet
+        uses: NuGet/setup-nuget@v2
+        if: success()
+
+      - name: Restore NuGet packages
+        # run: nuget restore "**/*.sln"
+        run: nuget restore .
+        if: success()
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v1
+        with:
+          msbuild-architecture: x64
+        if: success()
+        
+      # - name: Setup dotnet
+      #   uses: actions/setup-dotnet@v4
+      #   with:
+      #     dotnet-version: '4'
+      #   if: success()
+      # - name: Execute dotnet
+      #   run: dotnet build -c Release
+
+      - name: Build Solution
+        run: msbuild . /p:Configuration=Release /p:Platform="Any CPU"
+        if: success()
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: drop
+          path: ForgeCert/bin/Release/
+        if: success()
